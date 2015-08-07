@@ -9,7 +9,7 @@ setup(
                 "Building Meteor microservices with Python.",
     author="Adrian Liaw",
     author_email="adrianliaw2000@gmail.com",
-    license="Apache License 2.0"
+    license="Apache License 2.0",
     url="https://github.com/adrianliaw/python-ddp-server",
     packages=["ddpserver"],
     classifiers=[
