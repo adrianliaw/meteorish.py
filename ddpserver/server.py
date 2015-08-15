@@ -73,6 +73,6 @@ class DDPServer(web.Application):
                     .format(msg.data, traceback.format_exc())
                     )
 
-        @asyncio.coroutine
-        def __handle_connect(self, msg, session):
-            return NotImplemented
+    @asyncio.coroutine
+    def __handle_connect(self, msg, session):
+        return NotImplemented

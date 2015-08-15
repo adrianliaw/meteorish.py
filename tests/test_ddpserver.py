@@ -5,17 +5,22 @@ import json
 from aiohttp import web
 from unittest import mock
 from nose.tools import (assert_is_instance, assert_in,
-                        assert_equal, assert_raises, with_setup)
+                        assert_equal, assert_raises,
+                        assert_is, with_setup)
 
 
 def setup_session_message():
-    global loop, server, message, session, handle_message
+    global loop, server, message, session, handle_message, handle_connect
     loop = asyncio.get_event_loop()
     server = ddpserver.DDPServer(loop=loop)
     message = mock.Mock()
     session = mock.Mock()
     handle_message = run_until_complete(
         server._DDPServer__handle_message,
+        loop=loop,
+        )
+    handle_connect = run_until_complete(
+        server._DDPServer__handle_connect,
         loop=loop,
         )
 
@@ -136,3 +141,47 @@ def test_handle_valid_ddp():
     session._ddp_session.process_message.assert_called_with({
         "msg": "ping"
         })
+
+
+@with_setup(setup_session_message)
+def test_handle_connect_should_fail():
+    tester = handle_connect_should_fail_tester
+    message = {"msg": "connect"}
+    yield tester, message, mock.Mock()
+    message = {"msg": "connect", "version": 1}
+    yield tester, message, mock.Mock()
+    message = {"msg": "connect", "version": "1"}
+    yield tester, message, mock.Mock()
+    message = {"msg": "connect", "version": "1", "support": 1}
+    yield tester, message, mock.Mock()
+    message = {"msg": "connect", "version": "1", "support": [1]}
+    yield tester, message, mock.Mock()
+    message = {"msg": "connect", "version": "1", "support": ["pre2", "pre1"]}
+    yield tester, message, mock.Mock()
+    message = {"msg": "connect", "version": "pre1", "support": ["pre1"]}
+    yield tester, message, mock.Mock()
+
+
+def handle_connect_should_fail_tester(msg, ses):
+    ses.send = mock.Mock()
+    ses.close = mock.Mock()
+    handle_connect(msg, ses)
+    (out_msg, ), _ = ses.send.call_args
+    out_msg = json.loads(out_msg)
+    assert_equal(out_msg, {"msg": "failed", "version": "1"})
+    ses.close.assert_called_with()
+
+
+@mock.patch("ddpserver.DDPSession")
+@with_setup(setup_session_message)
+def test_handle_connect_create_ddp_session(ddpsession):
+    ddpsession.return_value = mock.Mock()
+    ddpsession.return_value.id = "TeStSeSsIoNiD"
+    message = {
+        "msg": "connect",
+        "version": "1",
+        "support": ["1", "pre2", "pre1"],
+        }
+    handle_connect(message, session)
+    assert_is(session._ddp_session, ddpsession())
+    assert_is(server.sessions["TeStSeSsIoNiD"], ddpsession())
