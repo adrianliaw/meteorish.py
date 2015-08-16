@@ -3,8 +3,9 @@ import sockjs
 import ejson
 import json
 import traceback
-from .utils import logger
 from aiohttp import web
+from .utils import logger
+from .session import DDPSession
 
 
 class DDPServer(web.Application):
@@ -75,4 +76,14 @@ class DDPServer(web.Application):
 
     @asyncio.coroutine
     def __handle_connect(self, msg, session):
-        return NotImplemented
+        if not (type(msg.get("version")) == str and
+                type(msg.get("support")) == list and
+                all(map(lambda x: type(x) == str, msg["support"])) and
+                msg["version"] in msg["support"] and
+                msg["version"] == "1"):
+            # Only support version 1 currently
+            session.send(json.dumps({"msg": "failed", "version": "1"}))
+            session.close()
+            return
+        session._ddp_session = DDPSession(msg["version"], session)
+        self.ddp_sessions[session._ddp_session.id] = session._ddp_session

@@ -6,7 +6,7 @@ from aiohttp import web
 from unittest import mock
 from nose.tools import (assert_is_instance, assert_in,
                         assert_equal, assert_raises,
-                        assert_is, with_setup)
+                        assert_is, with_setup, nottest)
 
 
 def setup_session_message():
@@ -162,6 +162,7 @@ def test_handle_connect_should_fail():
     yield tester, message, mock.Mock()
 
 
+@nottest
 def handle_connect_should_fail_tester(msg, ses):
     ses.send = mock.Mock()
     ses.close = mock.Mock()
@@ -172,16 +173,14 @@ def handle_connect_should_fail_tester(msg, ses):
     ses.close.assert_called_with()
 
 
-@mock.patch("ddpserver.DDPSession")
 @with_setup(setup_session_message)
-def test_handle_connect_create_ddp_session(ddpsession):
-    ddpsession.return_value = mock.Mock()
-    ddpsession.return_value.id = "TeStSeSsIoNiD"
+def test_handle_connect_create_ddp_session():
     message = {
         "msg": "connect",
         "version": "1",
         "support": ["1", "pre2", "pre1"],
         }
     handle_connect(message, session)
-    assert_is(session._ddp_session, ddpsession())
-    assert_is(server.sessions["TeStSeSsIoNiD"], ddpsession())
+    assert_equal(len(server.ddp_sessions), 1)
+    assert_equal(server.ddp_sessions,
+                 {session._ddp_session.id: session._ddp_session})
