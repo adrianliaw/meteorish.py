@@ -16,9 +16,9 @@ class DDPServer(web.Application):
         self.ddp_sessions = {}
 
     @asyncio.coroutine
-    def __handle_message(self, msg, session):
+    def __handle_message(self, msg, socket):
         if msg.tp == sockjs.MSG_OPEN:
-            session._ddp_session = None
+            socket._ddp_session = None
 
         elif msg.tp == sockjs.MSG_MESSAGE:
 
@@ -30,7 +30,7 @@ class DDPServer(web.Application):
                             "Discarding non-object DDP message {0}"
                             .format(msg.data),
                             )
-                        session.send(ejson.dumps({
+                        socket.send(ejson.dumps({
                             "msg": "error",
                             "reason": "Bad request",
                             "offendingMessage": mbody,
@@ -41,32 +41,32 @@ class DDPServer(web.Application):
                         "Discarding message with invalid JSON {0}"
                         .format(msg.data),
                         )
-                    session.send(json.dumps({
+                    socket.send(json.dumps({
                         "msg": "error",
                         "reason": "Bad request",
                         }))
                     return
 
                 if mbody["msg"] == "connect":
-                    if session._ddp_session:
-                        session.send(json.dumps({
+                    if socket._ddp_session:
+                        socket.send(json.dumps({
                             "msg": "error",
                             "reason": "Already connected",
                             "offendingMessage": mbody,
                             }))
                         return
-                    asyncio.async(self.__handle_connect(mbody, session))
+                    asyncio.async(self.__handle_connect(mbody, socket))
                     return
 
-                if not session._ddp_session:
-                    session.send(ejson.dumps({
+                if not socket._ddp_session:
+                    socket.send(ejson.dumps({
                         "msg": "error",
                         "reason": "Must connect first",
                         "offendingMessage": mbody,
                         }))
                     return
 
-                session._ddp_session.process_message(mbody)
+                socket._ddp_session.process_message(mbody)
 
             except Exception as err:
                 logger.error(
@@ -75,15 +75,15 @@ class DDPServer(web.Application):
                     )
 
     @asyncio.coroutine
-    def __handle_connect(self, msg, session):
+    def __handle_connect(self, msg, socket):
         if not (type(msg.get("version")) == str and
                 type(msg.get("support")) == list and
                 all(map(lambda x: type(x) == str, msg["support"])) and
                 msg["version"] in msg["support"] and
                 msg["version"] == "1"):
             # Only support version 1 currently
-            session.send(json.dumps({"msg": "failed", "version": "1"}))
-            session.close()
+            socket.send(json.dumps({"msg": "failed", "version": "1"}))
+            socket.close()
             return
-        session._ddp_session = DDPSession(msg["version"], session)
-        self.ddp_sessions[session._ddp_session.id] = session._ddp_session
+        socket._ddp_session = DDPSession(msg["version"], socket)
+        self.ddp_sessions[socket._ddp_session.id] = socket._ddp_session
