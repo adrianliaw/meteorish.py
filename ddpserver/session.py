@@ -1,11 +1,16 @@
 from . import utils
+import json
 
 
 class DDPSession(object):
 
-    def __init__(self, version, socket):
+    def __init__(self, server, version, socket):
+        self.server = server
         self.version = version
         self.socket = socket
         self.id = utils.gen_id()
 
-    NotImplemented
+        socket.send(json.dumps({
+            "msg": "connected",
+            "session": self.id,
+            }))
