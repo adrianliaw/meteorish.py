@@ -1,4 +1,4 @@
-from .utils import gen_id
+from . import utils
 
 
 class DDPSession(object):
@@ -6,6 +6,6 @@ class DDPSession(object):
     def __init__(self, version, socket):
         self.version = version
         self.socket = socket
-        self.id = gen_id()
+        self.id = utils.gen_id()
 
     NotImplemented

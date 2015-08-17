@@ -173,14 +173,15 @@ def handle_connect_should_fail_tester(msg, ses):
     ses.close.assert_called_with()
 
 
+@mock.patch("ddpserver.session.DDPSession")
 @with_setup(setup_socket_message)
-def test_handle_connect_create_ddp_session():
+def test_handle_connect_create_ddp_session(ddpsession):
+    ddpsession.return_value = mock.Mock(id="TeStSeSsIoNiD")
     message = {
         "msg": "connect",
         "version": "1",
         "support": ["1", "pre2", "pre1"],
         }
     handle_connect(message, socket)
-    assert_equal(len(server.ddp_sessions), 1)
-    assert_equal(server.ddp_sessions,
-                 {socket._ddp_session.id: socket._ddp_session})
+    assert_equal(socket._ddp_session, ddpsession())
+    assert_equal(server.ddp_sessions, {"TeStSeSsIoNiD": ddpsession()})

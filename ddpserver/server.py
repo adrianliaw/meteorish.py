@@ -5,7 +5,7 @@ import json
 import traceback
 from aiohttp import web
 from .utils import logger
-from .session import DDPSession
+from . import session
 
 
 class DDPServer(web.Application):
@@ -85,5 +85,5 @@ class DDPServer(web.Application):
             socket.send(json.dumps({"msg": "failed", "version": "1"}))
             socket.close()
             return
-        socket._ddp_session = DDPSession(msg["version"], socket)
+        socket._ddp_session = session.DDPSession(msg["version"], socket)
         self.ddp_sessions[socket._ddp_session.id] = socket._ddp_session
