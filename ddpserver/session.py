@@ -21,3 +21,10 @@ class DDPSession(object):
         if type(message.get("id", "")) != str:
             raise ValueError("Message id is not a string")
         self.socket.send(ejson.dumps(message))
+
+    def process_message(self, message):
+        if message["msg"] == "ping":
+            out_msg = {"msg": "pong"}
+            if "id" in message:
+                out_msg["id"] = message["id"]
+            self.send(out_msg)

@@ -52,3 +52,13 @@ def test_create_ddp_session(session_send, gen_id):
         "msg": "connected",
         "session": "TeStSeSsIoNiD",
         })
+
+
+@with_setup(setup_socket_message)
+def test_process_ping():
+    session = ddpserver.DDPSession(server, "1", socket)
+    session.send = mock.Mock()
+    session.process_message({"msg": "ping"})
+    session.send.assert_called_with({"msg": "pong"})
+    session.process_message({"msg": "ping", "id": "4"})
+    session.send.assert_called_with({"msg": "pong", "id": "4"})
