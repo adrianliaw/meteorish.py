@@ -85,5 +85,5 @@ class DDPServer(web.Application):
             socket.send(json.dumps({"msg": "failed", "version": "1"}))
             socket.close()
             return
-        socket._ddp_session = session.DDPSession(msg["version"], socket)
+        socket._ddp_session = session.DDPSession(self, msg["version"], socket)
         self.ddp_sessions[socket._ddp_session.id] = socket._ddp_session

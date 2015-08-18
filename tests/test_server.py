@@ -183,5 +183,6 @@ def test_handle_connect_create_ddp_session(ddpsession):
         "support": ["1", "pre2", "pre1"],
         }
     handle_connect(message, socket)
+    ddpsession.assert_called_with(server, "1", socket)
     assert_equal(socket._ddp_session, ddpsession())
     assert_equal(server.ddp_sessions, {"TeStSeSsIoNiD": ddpsession()})

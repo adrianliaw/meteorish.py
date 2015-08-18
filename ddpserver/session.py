@@ -28,3 +28,5 @@ class DDPSession(object):
             if "id" in message:
                 out_msg["id"] = message["id"]
             self.send(out_msg)
+        if message["msg"] == "pong":
+            pass
