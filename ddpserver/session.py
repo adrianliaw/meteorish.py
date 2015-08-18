@@ -1,11 +1,12 @@
 from . import utils
+import asyncio
 import json
 import ejson
 
 
 class DDPSession(object):
 
-    def __init__(self, server, version, socket):
+    def __init__(self, server, version, socket, loop=asyncio.get_event_loop()):
         self.server = server
         self.version = version
         self.socket = socket
