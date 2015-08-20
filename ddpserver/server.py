@@ -14,6 +14,7 @@ class DDPServer(web.Application):
         super().__init__(*args, **kwargs)
         sockjs.add_endpoint(self, self.__handle_message, name="ddp_server")
         self.ddp_sessions = {}
+        self.__on_connection_callbacks = []
 
     @asyncio.coroutine
     def __handle_message(self, msg, socket):
@@ -87,3 +88,9 @@ class DDPServer(web.Application):
             return
         socket._ddp_session = session.DDPSession(self, msg["version"], socket)
         self.ddp_sessions[socket._ddp_session.id] = socket._ddp_session
+        for callback in self.__on_connection_callbacks:
+            callback(socket._ddp_session)
+
+    def on_connection(self, callback):
+        self.__on_connection_callbacks.append(callback)
+        return callback

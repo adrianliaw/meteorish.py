@@ -186,3 +186,22 @@ def test_handle_connect_create_ddp_session(ddpsession):
     ddpsession.assert_called_with(server, "1", socket)
     assert_equal(socket._ddp_session, ddpsession())
     assert_equal(server.ddp_sessions, {"TeStSeSsIoNiD": ddpsession()})
+
+
+@mock.patch("ddpserver.session.DDPSession")
+@mock.patch("asyncio.async")
+@with_setup(setup_socket_message)
+def test_on_connection_callback(async_call, ddpsession):
+    ddpsession.return_value = mock.Mock()
+    callback = mock.Mock()
+    callback2 = mock.Mock()
+    server.on_connection(callback)
+    server.on_connection(callback2)
+    message = {
+        "msg": "connect",
+        "version": "1",
+        "support": ["1", "pre2", "pre1"],
+        }
+    handle_connect(message, socket)
+    callback.assert_called_with(ddpsession.return_value)
+    callback2.assert_called_with(ddpsession.return_value)
