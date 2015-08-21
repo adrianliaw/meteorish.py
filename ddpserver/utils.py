@@ -9,5 +9,3 @@ def gen_id(chars=17):
     for i in range(chars):
         res += random.choice(UNMISTAKABLE_CHARS)
     return res
-
-logger = logging.getLogger("ddpserver")

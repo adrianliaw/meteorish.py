@@ -4,7 +4,6 @@ import ejson
 import json
 import traceback
 from aiohttp import web
-from .utils import logger
 from . import session
 
 
@@ -27,9 +26,9 @@ class DDPServer(web.Application):
                 try:
                     mbody = ejson.loads(msg.data)
                     if type(mbody) != dict or mbody.get("msg") == None:
-                        logger.debug(
-                            "Discarding non-object DDP message {0}"
-                            .format(msg.data),
+                        self.logger.debug(
+                            "Discarding non-object DDP message {msg}"
+                            .format(msg=msg.data),
                             )
                         socket.send(ejson.dumps({
                             "msg": "error",
@@ -38,9 +37,9 @@ class DDPServer(web.Application):
                             }))
                         return
                 except ValueError:
-                    logger.debug(
-                        "Discarding message with invalid JSON {0}"
-                        .format(msg.data),
+                    self.logger.debug(
+                        "Discarding message with invalid JSON {msg}"
+                        .format(msg=msg.data),
                         )
                     socket.send(json.dumps({
                         "msg": "error",
@@ -70,9 +69,9 @@ class DDPServer(web.Application):
                 socket._ddp_session.process_message(mbody)
 
             except Exception as err:
-                logger.error(
-                    "Internal exception while processing message {0}\n{1}"
-                    .format(msg.data, traceback.format_exc())
+                self.logger.error(
+                    "Internal exception while processing message {msg}\n{err}"
+                    .format(msg=msg.data, err=traceback.format_exc())
                     )
 
     @asyncio.coroutine
@@ -89,7 +88,13 @@ class DDPServer(web.Application):
         socket._ddp_session = session.DDPSession(self, msg["version"], socket)
         self.ddp_sessions[socket._ddp_session.id] = socket._ddp_session
         for callback in self.__on_connection_callbacks:
-            callback(socket._ddp_session)
+            try:
+                callback(socket._ddp_session)
+            except Exception as err:
+                self.logger.error(
+                    "Exception in on_connection callback:\n{err}"
+                    .format(err=traceback.format_exc())
+                    )
 
     def on_connection(self, callback):
         self.__on_connection_callbacks.append(callback)

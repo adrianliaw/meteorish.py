@@ -205,3 +205,23 @@ def test_on_connection_callback(async_call, ddpsession):
     handle_connect(message, socket)
     callback.assert_called_with(ddpsession.return_value)
     callback2.assert_called_with(ddpsession.return_value)
+
+
+@mock.patch("ddpserver.session.DDPSession")
+@mock.patch("asyncio.async")
+@with_setup(setup_socket_message)
+def test_on_connection_callback_with_error(async_call, ddpsession):
+    ddpsession.return_value = mock.Mock()
+
+    @server.on_connection
+    def callback1(session):
+        raise Exception("Should not stop here")
+
+    callback2 = mock.Mock()
+    server.on_connection(callback2)
+    handle_connect({
+        "msg": "connect",
+        "version": "1",
+        "support": ["1", "pre2", "pre1"],
+        }, socket)
+    callback2.assert_called_with(ddpsession.return_value)
