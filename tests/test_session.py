@@ -2,7 +2,7 @@ import asyncio
 import ddpserver
 import json
 import datetime
-from nose.tools import assert_equal, assert_raises, with_setup
+from nose.tools import assert_equal, assert_raises, assert_is_none, with_setup
 from unittest import mock
 
 
@@ -62,3 +62,14 @@ def test_process_ping():
     session.send.assert_called_with({"msg": "pong"})
     session.process_message({"msg": "ping", "id": "4"})
     session.send.assert_called_with({"msg": "pong", "id": "4"})
+
+
+@mock.patch("ddpserver.utils.gen_id")
+@with_setup(setup_socket_message)
+def test_close_session(gen_id):
+    gen_id.return_value = "TeStSeSsIoNiD"
+    session = ddpserver.DDPSession(server, "1", socket)
+    session.close()
+    socket.close.assert_called_with(3000, "Normal closure")
+    assert_is_none(socket._ddp_session)
+    assert_raises(KeyError, lambda: server.ddp_sessions["TeStSeSsIoNiD"])
