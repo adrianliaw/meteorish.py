@@ -55,7 +55,8 @@ class DDPServer(web.Application):
                             "offendingMessage": mbody,
                             }))
                         return
-                    asyncio.async(self.__handle_connect(mbody, socket))
+                    asyncio.async(self.__handle_connect(mbody, socket),
+                                  loop=self.loop)
                     return
 
                 if not socket._ddp_session:
@@ -85,7 +86,8 @@ class DDPServer(web.Application):
             socket.send(json.dumps({"msg": "failed", "version": "1"}))
             socket.close()
             return
-        socket._ddp_session = session.DDPSession(self, msg["version"], socket)
+        socket._ddp_session = session.DDPSession(self, msg["version"],
+                                                 socket, self.loop)
         self.ddp_sessions[socket._ddp_session.id] = socket._ddp_session
         for callback in self.__on_connection_callbacks:
             try:
