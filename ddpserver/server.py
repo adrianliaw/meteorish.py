@@ -94,8 +94,8 @@ class DDPServer(web.Application):
                 callback(socket._ddp_session)
             except Exception as err:
                 self.logger.error(
-                    "Exception in on_connection callback:\n{err}"
-                    .format(err=traceback.format_exc())
+                    "Exception in on_connection callback by {func}:\n{err}"
+                    .format(func=callback, err=traceback.format_exc())
                     )
 
     def on_connection(self, callback):

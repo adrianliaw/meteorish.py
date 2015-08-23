@@ -42,8 +42,8 @@ class DDPSession(object):
                     callback()
                 except Exception as err:
                     self.logger.error(
-                        "Exception in on_close callback:\n{err}"
-                        .format(err=traceback.format_exc())
+                        "Exception in on_close callback be {func}:\n{err}"
+                        .format(func=callback, err=traceback.format_exc())
                         )
 
     def process_message(self, message):
