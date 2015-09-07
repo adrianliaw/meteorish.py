@@ -35,16 +35,17 @@ class DDPSession(object):
         if self.id in self.server.ddp_sessions:
             del self.server.ddp_sessions[self.id]
 
-        @self.loop.call_soon
+        @asyncio.coroutine
         def each_callbacks():
             for callback in self._close_callbacks:
                 try:
-                    callback()
+                    yield from callback()
                 except Exception as err:
                     self.logger.error(
                         "Exception in on_close callback be {func}:\n{err}"
                         .format(func=callback, err=traceback.format_exc())
                         )
+        asyncio.async(each_callbacks(), loop=self.loop)
 
     def process_message(self, message):
         if message["msg"] == "ping":
@@ -57,4 +58,6 @@ class DDPSession(object):
             return
 
     def on_close(self, callback):
+        if not asyncio.iscoroutinefunction(callback):
+            callback = asyncio.coroutine(callback)
         self._close_callbacks.append(callback)

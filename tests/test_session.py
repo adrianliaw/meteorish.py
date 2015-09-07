@@ -3,7 +3,8 @@ import ddpserver
 import json
 import datetime
 from nose.tools import (assert_equal, assert_raises, assert_true,
-                        assert_is_none, assert_false, with_setup)
+                        assert_is_none, assert_false, with_setup,
+                        assert_in, assert_not_in)
 from unittest import mock
 
 
@@ -70,10 +71,11 @@ def test_process_ping():
 def test_close_session(gen_id):
     gen_id.return_value = "TeStSeSsIoNiD"
     session = ddpserver.DDPSession(server, "1", socket, loop)
+    server.ddp_sessions["TeStSeSsIoNiD"] = session
     session.close()
     socket.close.assert_called_with(3000, "Normal closure")
     assert_is_none(socket._ddp_session)
-    assert_raises(KeyError, lambda: server.ddp_sessions["TeStSeSsIoNiD"])
+    assert_not_in("TeStSeSsIoNiD", server.ddp_sessions)
 
 
 @with_setup(setup_socket_message)
@@ -87,11 +89,14 @@ def test_session_on_close_callbacks_deferring():
         assert_false(callback.called)
 
 
-@mock.patch("asyncio.unix_events._UnixSelectorEventLoop.call_soon")
+@mock.patch("asyncio.async")
 @with_setup(setup_socket_message)
-def test_session_on_close_callback(call_soon):
+def test_session_on_close_callback(async_call):
     session = ddpserver.DDPSession(server, "1", socket, loop)
-    call_soon.side_effect = lambda f: f()
+
+    def side_effect(coroutine, loop):
+        loop.run_until_complete(coroutine)
+    async_call.side_effect = side_effect
     callback1 = mock.Mock()
     session.on_close(callback1)
     callback2 = mock.Mock()
@@ -101,11 +106,14 @@ def test_session_on_close_callback(call_soon):
     assert_true(callback2.called)
 
 
-@mock.patch("asyncio.unix_events._UnixSelectorEventLoop.call_soon")
+@mock.patch("asyncio.async")
 @with_setup(setup_socket_message)
-def test_session_on_close_callback_with_error(call_soon):
+def test_session_on_close_callback_with_error(async_call):
     session = ddpserver.DDPSession(server, "1", socket, loop)
-    call_soon.side_effect = lambda f: f()
+
+    def side_effect(coroutine, loop):
+        loop.run_until_complete(coroutine)
+    async_call.side_effect = side_effect
     callback1 = mock.Mock()
     session.on_close(callback1)
     callback2 = mock.Mock(side_effect=ValueError)
