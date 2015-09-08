@@ -11,12 +11,12 @@ class DDPServer(web.Application):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        sockjs.add_endpoint(self, self.__handle_message, name="ddp_server")
+        sockjs.add_endpoint(self, self._handle_message, name="ddp_server")
         self.ddp_sessions = {}
-        self.__on_connection_callbacks = []
+        self._on_connection_callbacks = []
 
     @asyncio.coroutine
-    def __handle_message(self, msg, socket):
+    def _handle_message(self, msg, socket):
         if msg.tp == sockjs.MSG_OPEN:
             socket._ddp_session = None
 
@@ -55,7 +55,7 @@ class DDPServer(web.Application):
                             "offendingMessage": mbody,
                             }))
                         return
-                    asyncio.async(self.__handle_connect(mbody, socket),
+                    asyncio.async(self._handle_connect(mbody, socket),
                                   loop=self.loop)
                     return
 
@@ -76,7 +76,7 @@ class DDPServer(web.Application):
                     )
 
     @asyncio.coroutine
-    def __handle_connect(self, msg, socket):
+    def _handle_connect(self, msg, socket):
         if not (type(msg.get("version")) == str and
                 type(msg.get("support")) == list and
                 all(map(lambda x: type(x) == str, msg["support"])) and
@@ -89,7 +89,7 @@ class DDPServer(web.Application):
         socket._ddp_session = session.DDPSession(self, msg["version"],
                                                  socket, self.loop)
         self.ddp_sessions[socket._ddp_session.id] = socket._ddp_session
-        for callback in self.__on_connection_callbacks:
+        for callback in self._on_connection_callbacks:
             try:
                 callback(socket._ddp_session)
             except Exception as err:
@@ -99,5 +99,5 @@ class DDPServer(web.Application):
                     )
 
     def on_connection(self, callback):
-        self.__on_connection_callbacks.append(callback)
+        self._on_connection_callbacks.append(callback)
         return callback
