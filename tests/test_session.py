@@ -9,15 +9,19 @@ from unittest import mock
 
 
 def setup_socket_message():
-    global loop, server, socket
+    global loop, server, socket, session
     loop = asyncio.get_event_loop()
     server = ddpserver.DDPServer(loop=loop)
     socket = mock.Mock()
+    session = ddpserver.DDPSession(server, "1", socket, loop)
+
+
+def next_tick():
+    loop.run_until_complete(asyncio.coroutine(lambda: None)())
 
 
 @with_setup(setup_socket_message)
 def test_session_send():
-    session = ddpserver.DDPSession(server, "1", socket, loop)
     session.send({
         "msg": "connected",
         "session": "TeStSeSsIoNiD",
@@ -58,7 +62,6 @@ def test_create_ddp_session(session_send, gen_id):
 
 @with_setup(setup_socket_message)
 def test_process_ping():
-    session = ddpserver.DDPSession(server, "1", socket, loop)
     session.send = mock.Mock()
     session.process_message({"msg": "ping"})
     session.send.assert_called_with({"msg": "pong"})
@@ -80,40 +83,19 @@ def test_close_session(gen_id):
 
 @with_setup(setup_socket_message)
 def test_session_on_close_callbacks_deferring():
-    session = ddpserver.DDPSession(server, "1", socket, loop)
     callbacks = [mock.Mock() for i in range(100)]
     for callback in callbacks:
         session.on_close(callback)
     session.close()
     for callback in callbacks:
         assert_false(callback.called)
+    next_tick()
+    for callback in callbacks:
+        assert_true(callback.called)
 
 
-@mock.patch("asyncio.async")
 @with_setup(setup_socket_message)
-def test_session_on_close_callback(async_call):
-    session = ddpserver.DDPSession(server, "1", socket, loop)
-
-    def side_effect(coroutine, loop):
-        loop.run_until_complete(coroutine)
-    async_call.side_effect = side_effect
-    callback1 = mock.Mock()
-    session.on_close(callback1)
-    callback2 = mock.Mock()
-    session.on_close(callback2)
-    session.close()
-    assert_true(callback1.called)
-    assert_true(callback2.called)
-
-
-@mock.patch("asyncio.async")
-@with_setup(setup_socket_message)
-def test_session_on_close_callback_with_error(async_call):
-    session = ddpserver.DDPSession(server, "1", socket, loop)
-
-    def side_effect(coroutine, loop):
-        loop.run_until_complete(coroutine)
-    async_call.side_effect = side_effect
+def test_session_on_close_callback_with_error():
     callback1 = mock.Mock()
     session.on_close(callback1)
     callback2 = mock.Mock(side_effect=ValueError)
@@ -121,6 +103,7 @@ def test_session_on_close_callback_with_error(async_call):
     callback3 = mock.Mock()
     session.on_close(callback3)
     session.close()
+    next_tick()
     assert_true(callback1.called)
     assert_true(callback2.called)
     assert_true(callback3.called)
