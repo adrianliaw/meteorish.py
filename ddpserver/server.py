@@ -91,7 +91,7 @@ class DDPServer(web.Application):
         self.ddp_sessions[socket._ddp_session.id] = socket._ddp_session
         for callback in self._on_connection_callbacks:
             try:
-                callback(socket._ddp_session)
+                yield from callback(socket._ddp_session)
             except Exception as err:
                 self.logger.error(
                     "Exception in on_connection callback by {func}:\n{err}"
@@ -99,5 +99,7 @@ class DDPServer(web.Application):
                     )
 
     def on_connection(self, callback):
+        if not asyncio.iscoroutinefunction(callback):
+            callback = asyncio.coroutine(callback)
         self._on_connection_callbacks.append(callback)
         return callback
