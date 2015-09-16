@@ -1,4 +1,4 @@
-from ddpserver import utils
+from meteorish import utils
 from nose.tools import assert_equal, assert_not_equal
 
 

@@ -1,5 +1,5 @@
 import asyncio
-import ddpserver
+import meteorish
 import sockjs
 from unittest import mock
 from aiohttp import web
@@ -11,7 +11,7 @@ from . import utils as test_utils
 def setup_socket_message():
     global loop, server, message, socket, handle_message, handle_connect
     loop = asyncio.get_event_loop()
-    server = ddpserver.DDPServer(loop=loop)
+    server = meteorish.DDPServer(loop=loop)
     message = mock.Mock()
     socket = mock.Mock()
     handle_message = test_utils.run_until_complete(
@@ -26,7 +26,7 @@ def setup_socket_message():
 
 def test_server_class():
     loop = asyncio.get_event_loop()
-    server = ddpserver.DDPServer(loop=loop)
+    server = meteorish.DDPServer(loop=loop)
     assert_is_instance(server, web.Application)
     assert_in("__sockjs_managers__", server)
     assert_in("ddp_server", server["__sockjs_managers__"])
@@ -41,7 +41,7 @@ def test_handle_connection_opened():
     assert_equal(socket._ddp_session, None)
 
 
-@mock.patch("ddpserver.session.DDPSession")
+@mock.patch("meteorish.session.DDPSession")
 @with_setup(setup_socket_message)
 def test_on_connection_callback(ddpsession):
     ddpsession.return_value = mock.Mock()

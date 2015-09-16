@@ -1,5 +1,4 @@
-
-DDP server implemented in Python
--------------
+Meteorish.py
+============
 
 this project is under development.

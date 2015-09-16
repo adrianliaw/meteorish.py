@@ -19,7 +19,7 @@ install-without-test:
 install: clean test install-without-test
 
 lint:
-	pep8 ddpserver tests
+	pep8 meteorish tests
 
 test: clean lint
 	nosetests tests

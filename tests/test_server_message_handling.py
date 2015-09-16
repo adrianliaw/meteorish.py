@@ -1,4 +1,4 @@
-import ddpserver
+import meteorish
 import asyncio
 import sockjs
 from aiohttp import web
@@ -12,7 +12,7 @@ from nose.tools import (assert_true, assert_equal, with_setup,
 def setup_socket_message():
     global loop, server, message, socket, handle_message, handle_connect
     loop = asyncio.get_event_loop()
-    server = ddpserver.DDPServer(loop=loop)
+    server = meteorish.DDPServer(loop=loop)
     message = mock.Mock()
     message.tp = sockjs.MSG_MESSAGE
     socket = mock.Mock()
@@ -126,7 +126,7 @@ def handle_connect_should_fail_tester(msg, ses):
     assert_true(ses.close.called)
 
 
-@mock.patch("ddpserver.session.DDPSession")
+@mock.patch("meteorish.session.DDPSession")
 @with_setup(setup_socket_message)
 def test_handle_connect_create_ddp_session(ddpsession):
     ddpsession.return_value = mock.Mock(id="TeStSeSsIoNiD")

@@ -3,15 +3,16 @@
 from setuptools import setup
 
 setup(
-    name="ddpserver",
-    version="0.0.1",
+    name="meteorish",
+    version="0.0.0",
     description="DDP server implemented in Python. "
-                "Building Meteor microservices with Python.",
+                "Build Meteor microservices with Python.",
+    long_description="This is a placeholder package",
     author="Adrian Liaw",
     author_email="adrianliaw2000@gmail.com",
     license="Apache 2",
-    url="https://github.com/adrianliaw/python-ddp-server",
-    packages=["ddpserver"],
+    url="https://github.com/adrianliaw/meteorish.py",
+    packages=["meteorish"],
     install_requires=[
         "aiohttp>=0.15.1",
         "sockjs>=0.2",
@@ -20,5 +21,6 @@ setup(
     classifiers=[
         "Development Status :: 1 - Planning",
         "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
         ],
     )

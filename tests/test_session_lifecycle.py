@@ -1,5 +1,5 @@
 import asyncio
-import ddpserver
+import meteorish
 import datetime
 from . import utils as test_utils
 from nose.tools import (assert_raises, assert_true, assert_not_in,
@@ -11,9 +11,9 @@ from unittest import mock
 def setup_socket_message():
     global loop, server, socket, session
     loop = asyncio.get_event_loop()
-    server = ddpserver.DDPServer(loop=loop)
+    server = meteorish.DDPServer(loop=loop)
     socket = mock.Mock()
-    session = ddpserver.DDPSession(server, "1", socket, loop)
+    session = meteorish.DDPSession(server, "1", socket, loop)
 
 
 @with_setup(setup_socket_message)
@@ -42,22 +42,22 @@ def test_session_send():
         })
 
 
-@mock.patch("ddpserver.utils.gen_id")
+@mock.patch("meteorish.utils.gen_id")
 @with_setup(setup_socket_message)
 def test_create_ddp_session(gen_id):
     gen_id.return_value = "TeStSeSsIoNiD"
-    session = ddpserver.DDPSession(server, "1", socket, loop)
+    session = meteorish.DDPSession(server, "1", socket, loop)
     assert_socket_sent_json(socket, {
         "msg": "connected",
         "session": "TeStSeSsIoNiD",
         })
 
 
-@mock.patch("ddpserver.utils.gen_id")
+@mock.patch("meteorish.utils.gen_id")
 @with_setup(setup_socket_message)
 def test_close_session(gen_id):
     gen_id.return_value = "TeStSeSsIoNiD"
-    session = ddpserver.DDPSession(server, "1", socket, loop)
+    session = meteorish.DDPSession(server, "1", socket, loop)
     server.ddp_sessions["TeStSeSsIoNiD"] = session
     session.close()
     socket.close.assert_called_with(3000, "Normal closure")

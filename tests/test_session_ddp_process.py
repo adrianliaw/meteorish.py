@@ -1,21 +1,22 @@
 import asyncio
-import ddpserver
+import meteorish
 from nose.tools import with_setup
 from unittest import mock
+from .utils import assert_socket_sent_json
 
 
 def setup_socket_message():
     global loop, server, socket, session
     loop = asyncio.get_event_loop()
-    server = ddpserver.DDPServer(loop=loop)
+    server = meteorish.DDPServer(loop=loop)
     socket = mock.Mock()
-    session = ddpserver.DDPSession(server, "1", socket, loop)
+    session = meteorish.DDPSession(server, "1", socket, loop)
+    server.ddp_sessions[session.id] = session
 
 
 @with_setup(setup_socket_message)
 def test_process_ping():
-    session.send = mock.Mock()
     session.process_message({"msg": "ping"})
-    session.send.assert_called_with({"msg": "pong"})
+    assert_socket_sent_json(socket, {"msg": "pong"})
     session.process_message({"msg": "ping", "id": "4"})
-    session.send.assert_called_with({"msg": "pong", "id": "4"})
+    assert_socket_sent_json(socket, {"msg": "pong", "id": "4"})
