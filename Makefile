@@ -20,6 +20,7 @@ install: clean test install-without-test
 
 lint:
 	pep8 meteorish tests
+	python -m pyflakes meteorish tests
 
 test: clean lint
 	nosetests tests

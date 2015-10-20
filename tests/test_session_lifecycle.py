@@ -46,7 +46,7 @@ def test_session_send():
 @with_setup(setup_socket_message)
 def test_create_ddp_session(gen_id):
     gen_id.return_value = "TeStSeSsIoNiD"
-    session = meteorish.DDPSession(server, "1", socket, loop)
+    meteorish.DDPSession(server, "1", socket, loop)
     assert_socket_sent_json(socket, {
         "msg": "connected",
         "session": "TeStSeSsIoNiD",

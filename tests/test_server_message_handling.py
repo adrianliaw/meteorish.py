@@ -1,7 +1,6 @@
 import meteorish
 import asyncio
 import sockjs
-from aiohttp import web
 from . import utils as test_utils
 from unittest import mock
 from .utils import assert_socket_sent_json

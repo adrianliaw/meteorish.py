@@ -1,7 +1,6 @@
 from . import utils
 import asyncio
 import traceback
-import json
 import ejson
 
 
@@ -40,7 +39,7 @@ class DDPSession(object):
             for callback in self._close_callbacks:
                 try:
                     yield from callback()
-                except Exception as err:
+                except Exception:
                     self.logger.error(
                         "Exception in on_close callback be {func}:\n{err}"
                         .format(func=callback, err=traceback.format_exc())

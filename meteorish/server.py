@@ -15,6 +15,9 @@ class DDPServer(web.Application):
         self.ddp_sessions = {}
         self._on_connection_callbacks = []
 
+    def __repr__(self):
+        return "<DDPServer>"
+
     @asyncio.coroutine
     def _handle_message(self, msg, socket):
         if msg.tp == sockjs.MSG_OPEN:
@@ -69,7 +72,7 @@ class DDPServer(web.Application):
 
                 socket._ddp_session.process_message(mbody)
 
-            except Exception as err:
+            except Exception:
                 self.logger.error(
                     "Internal exception while processing message {msg}\n{err}"
                     .format(msg=msg.data, err=traceback.format_exc())
@@ -92,7 +95,7 @@ class DDPServer(web.Application):
         for callback in self._on_connection_callbacks:
             try:
                 yield from callback(socket._ddp_session)
-            except Exception as err:
+            except Exception:
                 self.logger.error(
                     "Exception in on_connection callback by {func}:\n{err}"
                     .format(func=callback, err=traceback.format_exc())
